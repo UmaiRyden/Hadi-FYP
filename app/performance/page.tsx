@@ -23,16 +23,17 @@ export default function PerformancePage() {
   ]
 
   return (
-    <div className="min-h-svh flex flex-col">
+    <div className="min-h-[calc(100svh-var(--navbar-height))] flex flex-col">
       <GL hovering={hovering} />
 
-      <div className="relative z-10 pt-32 pb-16 px-4">
+      <div className="relative z-10 page-container py-12">
+        {/* Header */}
+        <div className="text-center mb-12">
+          <h1 className="text-4xl sm:text-5xl md:text-6xl font-sentient mb-4">Model Performance</h1>
+          <p className="text-foreground/60 text-base md:text-lg">Academic evaluation metrics for traffic classification</p>
+        </div>
+
         <div className="max-w-5xl mx-auto">
-          {/* Header */}
-          <div className="text-center mb-12">
-            <h1 className="text-5xl sm:text-6xl font-sentient mb-4">Model Performance</h1>
-            <p className="text-foreground/60">Academic evaluation metrics for traffic classification</p>
-          </div>
 
           {/* Performance Metrics Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">

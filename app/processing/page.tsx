@@ -48,16 +48,17 @@ export default function ProcessingPage() {
   }, [progress])
 
   return (
-    <div className="min-h-svh flex flex-col">
+    <div className="min-h-[calc(100svh-var(--navbar-height))] flex flex-col">
       <GL hovering={hovering} />
 
-      <div className="relative z-10 pt-32 pb-16 px-4">
+      <div className="relative z-10 page-container py-12">
+        {/* Header */}
+        <div className="text-center mb-12">
+          <h1 className="text-4xl sm:text-5xl md:text-6xl font-sentient mb-4">Feature Extraction</h1>
+          <p className="text-foreground/60 text-base md:text-lg">Analyzing encrypted traffic...</p>
+        </div>
+
         <div className="max-w-3xl mx-auto">
-          {/* Header */}
-          <div className="text-center mb-12">
-            <h1 className="text-5xl sm:text-6xl font-sentient mb-4">Feature Extraction</h1>
-            <p className="text-foreground/60">Analyzing encrypted traffic...</p>
-          </div>
 
           {/* PCAP File Info Card */}
           <Card className="border-primary/20 bg-background/95 backdrop-blur-sm shadow-[0_0_20px_rgba(255,199,0,0.1)] mb-8">

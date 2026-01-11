@@ -9,34 +9,36 @@ import { useState } from "react"
 export function Hero() {
   const [hovering, setHovering] = useState(false)
   return (
-    <div className="flex flex-col h-svh justify-start">
+    <div className="flex flex-col min-h-[calc(100svh-var(--navbar-height))] justify-center items-center px-4">
       <GL hovering={hovering} />
 
-      <div className="pt-24 sm:pt-32 md:pt-40 text-center relative">
-        <Pill className="mb-6">AI-POWERED</Pill>
-        <h1 className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-sentient text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)]">
+      <div className="text-center relative max-w-4xl mx-auto w-full">
+        <Pill className="mb-8">AI-POWERED</Pill>
+        <h1 className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-sentient text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)] mb-6">
           Encrypted Mobile <br />
           <i className="font-light">Traffic Intelligence</i>
         </h1>
-        <p className="font-mono text-sm sm:text-base md:text-lg text-foreground/90 text-balance mt-8 max-w-[560px] mx-auto drop-shadow-[0_1px_4px_rgba(0,0,0,0.8)]">
+        <p className="font-mono text-sm sm:text-base md:text-lg text-foreground/90 text-balance mt-6 max-w-2xl mx-auto drop-shadow-[0_1px_4px_rgba(0,0,0,0.8)]">
           AI-powered classification of encrypted WhatsApp, YouTube, and Instagram traffic without decryption.
         </p>
 
-        <Link className="contents max-sm:hidden" href="/dashboard">
-          <Button className="mt-14" onMouseEnter={() => setHovering(true)} onMouseLeave={() => setHovering(false)}>
-            [Start Traffic Analysis]
-          </Button>
-        </Link>
-        <Link className="contents sm:hidden" href="/dashboard">
-          <Button
-            size="sm"
-            className="mt-14"
-            onMouseEnter={() => setHovering(true)}
-            onMouseLeave={() => setHovering(false)}
-          >
-            [Start Traffic Analysis]
-          </Button>
-        </Link>
+        <div className="mt-12">
+          <Link className="contents max-sm:hidden" href="/dashboard">
+            <Button className="px-8" onMouseEnter={() => setHovering(true)} onMouseLeave={() => setHovering(false)}>
+              [Start Traffic Analysis]
+            </Button>
+          </Link>
+          <Link className="contents sm:hidden" href="/dashboard">
+            <Button
+              size="sm"
+              className="px-6"
+              onMouseEnter={() => setHovering(true)}
+              onMouseLeave={() => setHovering(false)}
+            >
+              [Start Traffic Analysis]
+            </Button>
+          </Link>
+        </div>
       </div>
     </div>
   )

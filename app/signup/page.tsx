@@ -24,19 +24,19 @@ export default function SignupPage() {
   }
 
   return (
-    <div className="flex flex-col h-svh justify-center items-center">
+    <div className="flex flex-col min-h-[calc(100svh-var(--navbar-height))] justify-center items-center px-4 py-8">
       <GL hovering={hovering} />
 
-      <div className="relative z-10 w-full max-w-md px-4">
+      <div className="relative z-10 w-full max-w-md">
         <Card className="border-primary/20 bg-background/95 backdrop-blur-sm shadow-[0_0_20px_rgba(255,199,0,0.1)]">
-          <CardHeader className="text-center pb-4">
-            <CardTitle className="text-3xl font-sentient">Create Account</CardTitle>
-            <CardDescription className="text-foreground/60 mt-2">
+          <CardHeader className="text-center pb-6 pt-8">
+            <CardTitle className="text-2xl md:text-3xl font-sentient mb-2">Create Account</CardTitle>
+            <CardDescription className="text-foreground/60">
               Register to access the Traffic Intelligence Platform
             </CardDescription>
           </CardHeader>
 
-          <CardContent>
+          <CardContent className="pb-8">
             <form onSubmit={handleSubmit} className="space-y-5">
               {/* Full Name Field */}
               <div className="space-y-2">

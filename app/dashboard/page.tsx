@@ -81,21 +81,20 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="min-h-svh flex flex-col">
+    <div className="min-h-[calc(100svh-var(--navbar-height))] flex flex-col">
       <GL hovering={hovering} />
 
-      <div className="relative z-10 pt-32 pb-16 px-4">
-        <div className="max-w-4xl mx-auto">
-          {/* Header */}
-          <div className="text-center mb-12">
-            <h1 className="text-5xl sm:text-6xl font-sentient mb-4">Encrypted Mobile Traffic Classification</h1>
-            <p className="text-foreground/60 text-lg max-w-2xl mx-auto">
-              Upload PCAP files to analyze encrypted WhatsApp, YouTube and Instagram traffic
-            </p>
-          </div>
+      <div className="relative z-10 page-container py-12">
+        {/* Header */}
+        <div className="text-center mb-12">
+          <h1 className="text-4xl sm:text-5xl md:text-6xl font-sentient mb-4">Encrypted Mobile Traffic Classification</h1>
+          <p className="text-foreground/60 text-base md:text-lg max-w-2xl mx-auto">
+            Upload PCAP files to analyze encrypted WhatsApp, YouTube and Instagram traffic
+          </p>
+        </div>
 
-          {/* Upload Area */}
-          <Card className="border-primary/20 bg-background/95 backdrop-blur-sm shadow-[0_0_20px_rgba(255,199,0,0.1)] mb-8">
+        {/* Upload Area */}
+        <Card className="border-primary/20 bg-background/95 backdrop-blur-sm shadow-[0_0_20px_rgba(255,199,0,0.1)] mb-8 max-w-3xl mx-auto">
             <CardContent className="pt-8">
               <div
                 onDragEnter={handleDrag}
@@ -149,17 +148,16 @@ export default function DashboardPage() {
             </CardContent>
           </Card>
 
-          {/* Navigation */}
-          {status === "completed" && (
-            <div className="flex justify-center">
-              <Link href="/processing">
-                <Button className="px-8" onMouseEnter={() => setHovering(true)} onMouseLeave={() => setHovering(false)}>
-                  [View Analysis]
-                </Button>
-              </Link>
-            </div>
-          )}
-        </div>
+        {/* Navigation */}
+        {status === "completed" && (
+          <div className="flex justify-center max-w-3xl mx-auto mt-8">
+            <Link href="/processing">
+              <Button className="px-8" onMouseEnter={() => setHovering(true)} onMouseLeave={() => setHovering(false)}>
+                [View Analysis]
+              </Button>
+            </Link>
+          </div>
+        )}
       </div>
     </div>
   )

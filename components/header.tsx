@@ -1,13 +1,20 @@
 import Link from "next/link"
-import { Logo } from "./logo"
+import Image from "next/image"
 import { MobileMenu } from "./mobile-menu"
 
 export const Header = () => {
   return (
-    <div className="fixed z-50 pt-8 md:pt-14 top-0 left-0 w-full">
+    <div className="fixed top-0 left-0 w-full z-[1000] bg-black/40 backdrop-blur-2xl border-b border-white/5 py-4 md:py-5">
       <header className="flex items-center justify-between container">
-        <Link href="/">
-          <Logo className="w-[100px] md:w-[120px]" />
+        <Link href="/" className="flex items-center gap-3">
+          <Image
+            src="/logo.png"
+            alt="Logo"
+            width={40}
+            height={40}
+            className="w-10 h-10 md:w-12 md:h-12"
+          />
+          <span className="font-mono text-xl md:text-2xl font-semibold text-white">FYP</span>
         </Link>
         <nav className="flex max-lg:hidden absolute left-1/2 -translate-x-1/2 items-center justify-center gap-x-10">
           {[

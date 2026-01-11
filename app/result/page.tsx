@@ -19,17 +19,17 @@ export default function ResultPage() {
   const topPrediction = predictions[0]
 
   return (
-    <div className="min-h-svh flex flex-col">
+    <div className="min-h-[calc(100svh-var(--navbar-height))] flex flex-col">
       <GL hovering={hovering} />
 
-      <div className="relative z-10 pt-32 pb-16 px-4">
-        <div className="max-w-3xl mx-auto">
-          {/* Header */}
-          <div className="text-center mb-12">
-            <h1 className="text-5xl sm:text-6xl font-sentient mb-4">Classification Result</h1>
-            <p className="text-foreground/60">AI-powered traffic analysis complete</p>
-          </div>
+      <div className="relative z-10 page-container py-12">
+        {/* Header */}
+        <div className="text-center mb-12">
+          <h1 className="text-4xl sm:text-5xl md:text-6xl font-sentient mb-4">Classification Result</h1>
+          <p className="text-foreground/60 text-base md:text-lg">AI-powered traffic analysis complete</p>
+        </div>
 
+        <div className="max-w-3xl mx-auto">
           {/* Main Result Card - Dominant Display */}
           <Card className="border-primary/30 bg-background/95 backdrop-blur-sm shadow-[0_0_40px_rgba(255,199,0,0.2)] mb-8 relative overflow-hidden">
             {/* Glow effect background */}
@@ -94,8 +94,8 @@ export default function ResultPage() {
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link href="/performance">
               <Button
-                variant="default"
-                className="px-8"
+                variant="outline"
+                className="border-primary/30 hover:bg-primary/10 px-8 w-full sm:w-auto"
                 onMouseEnter={() => setHovering(true)}
                 onMouseLeave={() => setHovering(false)}
               >
@@ -105,7 +105,7 @@ export default function ResultPage() {
             <Link href="/dashboard">
               <Button
                 variant="default"
-                className="px-8"
+                className="px-8 w-full sm:w-auto"
                 onMouseEnter={() => setHovering(true)}
                 onMouseLeave={() => setHovering(false)}
               >

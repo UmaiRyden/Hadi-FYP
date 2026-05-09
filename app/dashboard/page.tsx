@@ -1,83 +1,79 @@
 "use client"
 
 import type React from "react"
-
 import { useState } from "react"
-import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { GL } from "@/components/gl"
+import Link from "next/link"
+import { startClassify } from "@/lib/classify-store"
+import { uploadPcap } from "@/lib/api"
 
-type AnalysisStatus = "idle" | "processing" | "completed"
+type AnalysisStatus = "idle" | "uploading" | "uploading-live" | "error"
 
 export default function DashboardPage() {
+  const router = useRouter()
   const [hovering, setHovering] = useState(false)
   const [status, setStatus] = useState<AnalysisStatus>("idle")
   const [dragActive, setDragActive] = useState(false)
   const [uploadedFile, setUploadedFile] = useState<File | null>(null)
+  const [errorMsg, setErrorMsg] = useState("")
 
   const handleDrag = (e: React.DragEvent) => {
     e.preventDefault()
     e.stopPropagation()
-    if (e.type === "dragenter" || e.type === "dragover") {
-      setDragActive(true)
-    } else if (e.type === "dragleave") {
-      setDragActive(false)
-    }
+    setDragActive(e.type === "dragenter" || e.type === "dragover")
   }
 
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault()
     e.stopPropagation()
     setDragActive(false)
-
-    const files = e.dataTransfer.files
-    if (files && files[0]) {
-      setUploadedFile(files[0])
-    }
+    const file = e.dataTransfer.files?.[0]
+    if (file) setUploadedFile(file)
   }
 
   const handleFileInput = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      setUploadedFile(e.target.files[0])
-    }
+    const file = e.target.files?.[0]
+    if (file) setUploadedFile(file)
   }
 
   const handleRunAnalysis = () => {
-    if (uploadedFile) {
-      setStatus("processing")
-      // Simulate processing time
-      setTimeout(() => {
-        setStatus("completed")
-      }, 3000)
+    if (!uploadedFile) return
+    setStatus("uploading")
+    setErrorMsg("")
+    startClassify(uploadedFile)
+    router.push("/processing")
+  }
+
+  const handleLiveAnalysis = async () => {
+    if (!uploadedFile) return
+    setStatus("uploading-live")
+    setErrorMsg("")
+    try {
+      const { job_id } = await uploadPcap(uploadedFile)
+      localStorage.setItem("job_id", String(job_id))
+      router.push("/live")
+    } catch (err: unknown) {
+      setStatus("error")
+      setErrorMsg(err instanceof Error ? err.message : "Upload failed")
     }
   }
 
-  const getStatusColor = (s: AnalysisStatus) => {
-    switch (s) {
-      case "idle":
-        return "bg-foreground/20 text-foreground/60"
-      case "processing":
-        return "bg-primary/20 text-primary"
-      case "completed":
-        return "bg-green-500/20 text-green-400"
-      default:
-        return ""
-    }
+  const statusColor: Record<AnalysisStatus, string> = {
+    idle:           "bg-foreground/20 text-foreground/60",
+    uploading:      "bg-primary/20 text-primary",
+    "uploading-live": "bg-primary/20 text-primary",
+    error:          "bg-red-500/20 text-red-400",
   }
 
-  const getStatusLabel = (s: AnalysisStatus) => {
-    switch (s) {
-      case "idle":
-        return "Idle"
-      case "processing":
-        return "Processing"
-      case "completed":
-        return "Completed"
-      default:
-        return ""
-    }
+  const statusLabel: Record<AnalysisStatus, string> = {
+    idle:             "Idle",
+    uploading:        "Uploading…",
+    "uploading-live": "Uploading…",
+    error:            "Error",
   }
 
   return (
@@ -85,79 +81,106 @@ export default function DashboardPage() {
       <GL hovering={hovering} />
 
       <div className="relative z-10 page-container py-12">
-        {/* Header */}
         <div className="text-center mb-12">
-          <h1 className="text-4xl sm:text-5xl md:text-6xl font-sentient mb-4">Encrypted Mobile Traffic Classification</h1>
+          <h1 className="text-4xl sm:text-5xl md:text-6xl font-sentient mb-4">
+            Encrypted Mobile Traffic Classification
+          </h1>
           <p className="text-foreground/60 text-base md:text-lg max-w-2xl mx-auto">
-            Upload PCAP files to analyze encrypted WhatsApp, YouTube and Instagram traffic
+            Upload PCAP files to analyze encrypted Facebook, WhatsApp, YouTube and Instagram traffic
           </p>
         </div>
 
-        {/* Upload Area */}
         <Card className="border-primary/20 bg-background/95 backdrop-blur-sm shadow-[0_0_20px_rgba(255,199,0,0.1)] mb-8 max-w-3xl mx-auto">
-            <CardContent className="pt-8">
-              <div
-                onDragEnter={handleDrag}
-                onDragLeave={handleDrag}
-                onDragOver={handleDrag}
-                onDrop={handleDrop}
-                className={`relative border-2 border-dashed rounded-lg p-12 text-center transition-all duration-300 cursor-pointer ${
-                  dragActive
-                    ? "border-primary bg-primary/10 shadow-[0_0_30px_rgba(255,199,0,0.2)]"
-                    : "border-primary/30 hover:border-primary/60 bg-background/50"
-                }`}
-              >
-                <input
-                  type="file"
-                  accept=".pcap,.pcapng"
-                  onChange={handleFileInput}
-                  className="hidden"
-                  id="file-upload"
-                />
-                <label htmlFor="file-upload" className="cursor-pointer block">
-                  <div className="mb-4">
-                    <div className="text-4xl mb-2">📁</div>
-                  </div>
-                  <div className="text-xl font-sentient mb-2">
-                    {uploadedFile ? uploadedFile.name : "Drop your PCAP file here"}
-                  </div>
-                  <div className="text-foreground/60 text-sm">
-                    {uploadedFile ? <span>File selected • Click to change</span> : <span>or click to browse</span>}
-                  </div>
-                </label>
-              </div>
-
-              {/* Analysis Button */}
-              <div className="mt-8 flex flex-col gap-4">
-                <Button
-                  onClick={handleRunAnalysis}
-                  disabled={!uploadedFile}
-                  className="w-full"
-                  onMouseEnter={() => !uploadedFile && setHovering(true)}
-                  onMouseLeave={() => setHovering(false)}
-                >
-                  [Run Analysis]
-                </Button>
-
-                {/* Status Badge */}
-                <div className="flex items-center justify-center gap-2">
-                  <span className="text-foreground/60 text-sm">Status:</span>
-                  <Badge className={`${getStatusColor(status)} border-0`}>{getStatusLabel(status)}</Badge>
+          <CardContent className="pt-8">
+            <div
+              onDragEnter={handleDrag}
+              onDragLeave={handleDrag}
+              onDragOver={handleDrag}
+              onDrop={handleDrop}
+              className={`relative border-2 border-dashed rounded-lg p-12 text-center transition-all duration-300 cursor-pointer ${
+                dragActive
+                  ? "border-primary bg-primary/10 shadow-[0_0_30px_rgba(255,199,0,0.2)]"
+                  : "border-primary/30 hover:border-primary/60 bg-background/50"
+              }`}
+            >
+              <input
+                type="file"
+                accept=".pcap,.pcapng"
+                onChange={handleFileInput}
+                className="hidden"
+                id="file-upload"
+              />
+              <label htmlFor="file-upload" className="cursor-pointer block">
+                <div className="mb-4">
+                  <div className="text-4xl mb-2">📁</div>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
+                <div className="text-xl font-sentient mb-2">
+                  {uploadedFile ? uploadedFile.name : "Drop your PCAP file here"}
+                </div>
+                <div className="text-foreground/60 text-sm">
+                  {uploadedFile ? (
+                    <span>File selected · Click to change</span>
+                  ) : (
+                    <span>or click to browse · .pcap / .pcapng</span>
+                  )}
+                </div>
+              </label>
+            </div>
 
-        {/* Navigation */}
-        {status === "completed" && (
-          <div className="flex justify-center max-w-3xl mx-auto mt-8">
-            <Link href="/processing">
-              <Button className="px-8" onMouseEnter={() => setHovering(true)} onMouseLeave={() => setHovering(false)}>
-                [View Analysis]
+            {errorMsg && (
+              <p className="mt-4 text-sm text-red-400 text-center">{errorMsg}</p>
+            )}
+
+            <div className="mt-8 flex flex-col gap-3">
+              <Button
+                onClick={handleRunAnalysis}
+                disabled={!uploadedFile || status === "uploading" || status === "uploading-live"}
+                className="w-full"
+                onMouseEnter={() => setHovering(true)}
+                onMouseLeave={() => setHovering(false)}
+              >
+                {status === "uploading" ? "Uploading…" : "[Run Analysis]"}
               </Button>
-            </Link>
-          </div>
-        )}
+
+              <Button
+                onClick={handleLiveAnalysis}
+                disabled={!uploadedFile || status === "uploading" || status === "uploading-live"}
+                className="w-full bg-transparent border border-primary/40 text-primary hover:bg-primary/10"
+                onMouseEnter={() => setHovering(true)}
+                onMouseLeave={() => setHovering(false)}
+              >
+                {status === "uploading-live" ? "Uploading…" : "[Live Analysis →]"}
+              </Button>
+
+              <p className="text-foreground/30 text-xs text-center">
+                Live Analysis streams confidence bars in real time as flows are classified
+              </p>
+
+              <div className="border-t border-primary/10 pt-3 mt-1">
+                <Link href="/live-capture" className="block w-full">
+                  <Button
+                    className="w-full bg-transparent border border-primary/25 text-foreground/50 hover:border-primary/50 hover:text-primary/80"
+                    onMouseEnter={() => setHovering(true)}
+                    onMouseLeave={() => setHovering(false)}
+                  >
+                    [Live Capture →]
+                  </Button>
+                </Link>
+                <p className="text-foreground/25 text-xs text-center mt-2">
+                  Captures directly from your network interface — requires{" "}
+                  <span className="font-mono text-foreground/40">live_agent.py</span> running locally
+                </p>
+              </div>
+
+              <div className="flex items-center justify-center gap-2 pt-1">
+                <span className="text-foreground/60 text-sm">Status:</span>
+                <Badge className={`${statusColor[status]} border-0`}>
+                  {statusLabel[status]}
+                </Badge>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   )

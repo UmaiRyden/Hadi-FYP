@@ -1,24 +1,36 @@
 "use client"
 
 import type React from "react"
-
 import { useState } from "react"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { GL } from "@/components/gl"
 import { Label } from "@/components/ui/label"
+import { login } from "@/lib/api"
 
 export default function LoginPage() {
+  const router = useRouter()
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [hovering, setHovering] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState("")
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    // Handle login logic here
-    console.log("Login attempt:", { email, password })
+    setError("")
+    setLoading(true)
+    try {
+      await login(email, password)
+      router.push("/dashboard")
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Login failed")
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -28,7 +40,9 @@ export default function LoginPage() {
       <div className="relative z-10 w-full max-w-md">
         <Card className="border-primary/20 bg-background/95 backdrop-blur-sm shadow-[0_0_20px_rgba(255,199,0,0.1)]">
           <CardHeader className="text-center pb-6 pt-8">
-            <CardTitle className="text-2xl md:text-3xl font-sentient mb-2">Sign in to Traffic Intelligence Platform</CardTitle>
+            <CardTitle className="text-2xl md:text-3xl font-sentient mb-2">
+              Sign in to Traffic Intelligence Platform
+            </CardTitle>
             <CardDescription className="text-foreground/60">
               Enter your credentials to access the system
             </CardDescription>
@@ -36,11 +50,8 @@ export default function LoginPage() {
 
           <CardContent className="pb-8">
             <form onSubmit={handleSubmit} className="space-y-6">
-              {/* Email Field */}
               <div className="space-y-2">
-                <Label htmlFor="email" className="text-foreground/80">
-                  Email
-                </Label>
+                <Label htmlFor="email" className="text-foreground/80">Email</Label>
                 <Input
                   id="email"
                   type="email"
@@ -52,11 +63,8 @@ export default function LoginPage() {
                 />
               </div>
 
-              {/* Password Field */}
               <div className="space-y-2">
-                <Label htmlFor="password" className="text-foreground/80">
-                  Password
-                </Label>
+                <Label htmlFor="password" className="text-foreground/80">Password</Label>
                 <Input
                   id="password"
                   type="password"
@@ -68,20 +76,23 @@ export default function LoginPage() {
                 />
               </div>
 
-              {/* Sign In Button */}
+              {error && (
+                <p className="text-sm text-red-400 text-center">{error}</p>
+              )}
+
               <Button
                 type="submit"
                 className="w-full mt-8"
+                disabled={loading}
                 onMouseEnter={() => setHovering(true)}
                 onMouseLeave={() => setHovering(false)}
               >
-                [Sign In]
+                {loading ? "Signing in…" : "[Sign In]"}
               </Button>
             </form>
 
-            {/* Sign Up Link */}
             <div className="mt-6 text-center text-foreground/60 text-sm">
-              Don't have an account?{" "}
+              Don&apos;t have an account?{" "}
               <Link href="/signup" className="text-primary hover:text-primary/80 transition-colors underline">
                 Create new account
               </Link>

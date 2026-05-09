@@ -1,0 +1,34 @@
+{
+  "model": "vpn_classifier.pkl",
+  "features_arff": [
+    "duration",
+    "mean_biat",
+    "std_biat",
+    "max_biat",
+    "flowPktsPerSecond",
+    "flowBytesPerSecond"
+  ],
+  "features_our_pipeline": [
+    "Flow.Duration",
+    "Bwd.IAT.Mean",
+    "Bwd.IAT.Std",
+    "Bwd.IAT.Max",
+    "Flow.Packets.s",
+    "Flow.Bytes.s"
+  ],
+  "classes": [
+    "Non-VPN",
+    "VPN"
+  ],
+  "accuracy": 85.27,
+  "f1_weighted": 85.29,
+  "f1_vpn": 83.81,
+  "f1_non_vpn": 86.49,
+  "roc_auc": 93.07,
+  "training_samples": 12412,
+  "test_samples": 3103,
+  "class_distribution": {
+    "Non-VPN": 8580,
+    "VPN": 6935
+  }
+}

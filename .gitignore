@@ -17,7 +17,6 @@ yarn-error.log*
 .pnpm-debug.log*
 
 # env files
-.env*
 
 # vercel
 .vercel
@@ -33,4 +32,10 @@ backend/*.db
 backend/uploads/
 backend/models/ml_model.pkl
 backend/models/model_metrics.json
+backend/models/*.pkl
 backend/.env
+
+# datasets / large data files
+*.csv
+*.pkl
+config.bat

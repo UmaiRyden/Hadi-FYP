@@ -17,8 +17,8 @@ def get_performance():
     path = os.path.abspath(METRICS_PATH)
     if not os.path.exists(path):
         raise HTTPException(
-            status_code=503,
-            detail="Model metrics not found. Run  python train_model.py  first.",
+            status_code=404,
+            detail="Model metrics not found. Run python train_model.py first.",
         )
 
     with open(path) as f:

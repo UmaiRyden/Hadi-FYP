@@ -32,7 +32,6 @@ backend/**/__pycache__/
 backend/*.db
 backend/uploads/
 backend/models/ml_model.pkl
-backend/models/model_metrics.json
 backend/.env
 
 # datasets / large data files

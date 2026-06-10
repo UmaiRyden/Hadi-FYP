@@ -19,12 +19,19 @@ ALGORITHM = "HS256"
 TOKEN_EXPIRE_HOURS = 24
 
 
+def _truncate(password: str) -> bytes:
+    # bcrypt only considers the first 72 bytes and raises on longer input;
+    # truncate to stay within the limit. Encode first so the cap is on bytes,
+    # not characters (multi-byte chars count for more than one byte).
+    return password.encode("utf-8")[:72]
+
+
 def _hash(password: str) -> str:
-    return pwd_context.hash(password)
+    return pwd_context.hash(_truncate(password))
 
 
 def _verify(plain: str, hashed: str) -> bool:
-    return pwd_context.verify(plain, hashed)
+    return pwd_context.verify(_truncate(plain), hashed)
 
 
 def _make_token(user_id: int) -> str:

@@ -32,6 +32,7 @@ backend/**/__pycache__/
 backend/*.db
 backend/uploads/
 backend/models/ml_model.pkl
+backend/models/traffic_classifier_prev.pkl
 backend/.env
 
 # datasets / large data files

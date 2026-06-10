@@ -1,13 +1,13 @@
 {
-  "accuracy": 92.65,
-  "precision": 92.76,
-  "recall": 92.65,
-  "f1_score": 92.66,
+  "accuracy": 93.32,
+  "precision": 93.44,
+  "recall": 93.32,
+  "f1_score": 93.35,
   "f1_per_class": {
-    "FACEBOOK": 95.69,
-    "INSTAGRAM": 78.32,
-    "WHATSAPP": 76.41,
-    "YOUTUBE": 93.38
+    "FACEBOOK": 96.21,
+    "INSTAGRAM": 81.49,
+    "WHATSAPP": 77.48,
+    "YOUTUBE": 93.56
   },
   "confusion_matrix": {
     "labels": [
@@ -18,33 +18,31 @@
     ],
     "matrix": [
       [
-        5528,
-        40,
-        47,
-        192
+        6381,
+        45,
+        52,
+        220
       ],
       [
-        36,
-        345,
-        24,
-        78
+        25,
+        372,
+        20,
+        66
       ],
       [
-        18,
-        8,
-        737,
+        14,
+        6,
+        743,
         156
       ],
       [
-        165,
-        5,
-        202,
-        5628
+        147,
+        7,
+        184,
+        5662
       ]
     ]
   },
-  "training_samples": 52832,
-  "test_samples": 13209,
   "feature_count": 18,
   "feature_names": [
     "Bwd.IAT.Total",
@@ -65,5 +63,7 @@
     "Flow.Bytes.s",
     "Flow.Packets.s",
     "Down.Up.Ratio"
-  ]
+  ],
+  "training_samples": 56397,
+  "test_samples": 14100
 }

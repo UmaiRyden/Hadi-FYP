@@ -409,17 +409,7 @@ export default function ResultPage() {
           )}
 
           {/* ── Actions ───────────────────────────────────────────────────── */}
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link href="/performance">
-              <Button
-                variant="outline"
-                className="border-primary/30 hover:bg-primary/10 px-8 w-full sm:w-auto"
-                onMouseEnter={() => setHovering(true)}
-                onMouseLeave={() => setHovering(false)}
-              >
-                [View Performance Metrics]
-              </Button>
-            </Link>
+          <div className="flex justify-center">
             <Link href="/dashboard">
               <Button
                 className="px-8 w-full sm:w-auto"

@@ -1,8 +1,20 @@
+"use client"
+
 import Link from "next/link"
 import Image from "next/image"
+import { useRouter } from "next/navigation"
 import { MobileMenu } from "./mobile-menu"
+import { useAuth } from "@/lib/auth-context"
 
 export const Header = () => {
+  const { user, isAuthenticated, loading, logout } = useAuth()
+  const router = useRouter()
+
+  const handleLogout = () => {
+    logout()
+    router.push("/login")
+  }
+
   return (
     <div className="fixed top-0 left-0 w-full z-[1000] bg-gradient-to-b from-primary/5 via-transparent to-transparent backdrop-blur-3xl border-b border-primary/20 py-4 md:py-5 shadow-[0_1px_20px_rgba(255,199,0,0.1)]">
       <header className="flex items-center justify-between container">
@@ -35,12 +47,32 @@ export const Header = () => {
             </Link>
           ))}
         </nav>
-        <Link
-          className="uppercase max-lg:hidden transition-colors ease-out duration-150 font-mono text-primary hover:text-primary/80"
-          href="/login"
-        >
-          Sign In
-        </Link>
+        {/* Auth area — hidden until auth state loads to avoid flicker */}
+        {!loading && (
+          isAuthenticated ? (
+            <div className="flex items-center gap-5 max-lg:hidden">
+              <span
+                className="font-mono text-sm text-foreground/60 truncate max-w-[200px]"
+                title={user?.email}
+              >
+                {user?.email}
+              </span>
+              <button
+                onClick={handleLogout}
+                className="uppercase transition-colors ease-out duration-150 font-mono text-primary hover:text-primary/80"
+              >
+                Logout
+              </button>
+            </div>
+          ) : (
+            <Link
+              className="uppercase max-lg:hidden transition-colors ease-out duration-150 font-mono text-primary hover:text-primary/80"
+              href="/login"
+            >
+              Sign In
+            </Link>
+          )
+        )}
         <MobileMenu />
       </header>
     </div>

@@ -3,6 +3,7 @@ import { Geist_Mono } from "next/font/google";
 import localFont from "next/font/local";
 import "./globals.css";
 import { Header } from "@/components/header";
+import { AuthProvider } from "@/lib/auth-context";
 
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
@@ -25,10 +26,12 @@ export default function RootLayout({
         className={`${geistMono.variable} antialiased`}
         suppressHydrationWarning
       >
-        <Header />
-        <main className="app-main">
-          {children}
-        </main>
+        <AuthProvider>
+          <Header />
+          <main className="app-main">
+            {children}
+          </main>
+        </AuthProvider>
       </body>
     </html>
   );

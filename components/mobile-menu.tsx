@@ -4,7 +4,9 @@ import { cn } from "@/lib/utils";
 import * as Dialog from "@radix-ui/react-dialog";
 import { Menu, X } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { useAuth } from "@/lib/auth-context";
 
 interface MobileMenuProps {
   className?: string;
@@ -12,6 +14,8 @@ interface MobileMenuProps {
 
 export const MobileMenu = ({ className }: MobileMenuProps) => {
   const [isOpen, setIsOpen] = useState(false);
+  const { user, isAuthenticated, loading, logout } = useAuth();
+  const router = useRouter();
 
   const menuItems = [
     { name: "Upload PCAP", href: "/dashboard" },
@@ -21,6 +25,12 @@ export const MobileMenu = ({ className }: MobileMenuProps) => {
 
   const handleLinkClick = () => {
     setIsOpen(false);
+  };
+
+  const handleLogout = () => {
+    setIsOpen(false);
+    logout();
+    router.push("/login");
   };
 
   return (
@@ -69,15 +79,31 @@ export const MobileMenu = ({ className }: MobileMenuProps) => {
               </Link>
             ))}
 
-            <div className="mt-6">
-              <Link
-                href="/login"
-                onClick={handleLinkClick}
-                className="inline-block text-xl font-mono uppercase text-primary transition-colors ease-out duration-150 hover:text-primary/80 py-2"
-              >
-                Sign In
-              </Link>
-            </div>
+            {!loading && (
+              <div className="mt-6">
+                {isAuthenticated ? (
+                  <div className="flex flex-col gap-3">
+                    <span className="text-sm font-mono text-foreground/50 truncate">
+                      {user?.email}
+                    </span>
+                    <button
+                      onClick={handleLogout}
+                      className="text-left inline-block text-xl font-mono uppercase text-primary transition-colors ease-out duration-150 hover:text-primary/80 py-2"
+                    >
+                      Logout
+                    </button>
+                  </div>
+                ) : (
+                  <Link
+                    href="/login"
+                    onClick={handleLinkClick}
+                    className="inline-block text-xl font-mono uppercase text-primary transition-colors ease-out duration-150 hover:text-primary/80 py-2"
+                  >
+                    Sign In
+                  </Link>
+                )}
+              </div>
+            )}
           </nav>
         </Dialog.Content>
       </Dialog.Portal>

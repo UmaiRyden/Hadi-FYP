@@ -112,6 +112,7 @@ export async function login(email: string, password: string): Promise<AuthRespon
   })
   const data = await handleResponse<AuthResponse>(res)
   localStorage.setItem("token", data.access_token)
+  localStorage.setItem("user", JSON.stringify(data.user))
   return data
 }
 
@@ -127,12 +128,29 @@ export async function signup(
   })
   const data = await handleResponse<AuthResponse>(res)
   localStorage.setItem("token", data.access_token)
+  localStorage.setItem("user", JSON.stringify(data.user))
   return data
 }
 
 export function logout() {
   localStorage.removeItem("token")
+  localStorage.removeItem("user")
   localStorage.removeItem("job_id")
+}
+
+export type AuthUser = AuthResponse["user"]
+
+/** Read the persisted user from localStorage (browser only). Returns null if absent/invalid. */
+export function getStoredUser(): AuthUser | null {
+  if (typeof window === "undefined") return null
+  const token = localStorage.getItem("token")
+  const raw = localStorage.getItem("user")
+  if (!token || !raw) return null
+  try {
+    return JSON.parse(raw) as AuthUser
+  } catch {
+    return null
+  }
 }
 
 // ── Upload ─────────────────────────────────────────────────────────────────────

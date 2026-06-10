@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 
 from database import get_db
 from models.db_models import AnalysisJob
-from schemas.schemas import AnalysisResult, PredictionItem
+from schemas.schemas import AnalysisResult, DeviceResult, FlowResult, PredictionItem
 
 router = APIRouter(prefix="/api", tags=["analysis"])
 
@@ -34,5 +34,14 @@ def get_result(job_id: int, db: Session = Depends(get_db)):
         response.predictions = [
             PredictionItem(**p) for p in json.loads(r.predictions_json)
         ]
+        response.vpn_detected = bool(r.vpn_detected) if r.vpn_detected is not None else False
+        response.flows = (
+            [FlowResult(**f) for f in json.loads(r.flows_json)]
+            if r.flows_json else []
+        )
+        response.devices = (
+            [DeviceResult(**d) for d in json.loads(r.devices_json)]
+            if r.devices_json else []
+        )
 
     return response

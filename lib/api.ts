@@ -26,6 +26,9 @@ export interface AnalysisResult {
   packet_count?: number
   processing_time?: number
   predictions?: PredictionItem[]
+  vpn_detected?: boolean
+  flows?: FlowResult[]
+  devices?: DeviceResult[]
   error_message?: string
 }
 

@@ -12,7 +12,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
 import { GL } from "@/components/gl"
-import { getResult, type AnalysisResult, type PredictionItem } from "@/lib/api"
+import { getResult, type AnalysisResult, type ClassifyResponse, type PredictionItem } from "@/lib/api"
 import { getStrength, STRENGTH_STYLE } from "@/lib/match-strength"
 
 // ── Constants ──────────────────────────────────────────────────────────────────
@@ -103,6 +103,28 @@ export default function LivePage() {
     if (growRef.current)  clearInterval(growRef.current)
   }
 
+  // ── On completion: hand the live result to the result page ─────────────────
+  // The /result page reads localStorage["classify_result"]. The sync /processing
+  // flow writes that key, so without this the result page would show a stale
+  // prediction from a previous sync run. We persist the exact completed live
+  // result here so [View Full Results] shows identical data — now including the
+  // full per-flow / per-device / VPN detail the async endpoint returns.
+  const persistResult = (data: AnalysisResult) => {
+    const full: ClassifyResponse = {
+      predicted_app:   data.predicted_app ?? "",
+      confidence:      data.confidence ?? 0,
+      flow_count:      data.flow_count ?? 0,
+      packet_count:    data.packet_count ?? 0,
+      processing_time: data.processing_time ?? 0,
+      vpn_detected:    data.vpn_detected ?? false,
+      predictions:     data.predictions ?? [],
+      flows:           data.flows ?? [],
+      devices:         data.devices ?? [],
+    }
+    localStorage.setItem("classify_result", JSON.stringify(full))
+    localStorage.setItem("classify_filename", data.original_filename ?? "")
+  }
+
   // ── On completion: reveal real values ──────────────────────────────────────
   const revealResult = (predictions: PredictionItem[]) => {
     stopAll()
@@ -130,6 +152,7 @@ export default function LivePage() {
 
         if (data.status === "completed" && !doneRef.current) {
           doneRef.current = true
+          persistResult(data)
           if (data.predictions?.length) revealResult(data.predictions)
         }
 

@@ -10,7 +10,7 @@ from sqlalchemy.orm import Session
 from database import SessionLocal, get_db
 from models.db_models import AnalysisJob, AnalysisResult
 from schemas.schemas import ClassifyResponse, DeviceResult, FlowResult, PredictionItem, UploadResponse
-from services.classifier import classify_flows, classify_flows_detailed, classify_by_device
+from services.classifier import classify_flows_detailed, classify_by_device
 from services.feature_extractor import extract_all_features
 from services.pcap_parser import parse_pcap
 
@@ -60,7 +60,22 @@ def _process(job_id: int, file_path: str) -> None:
         job.progress = 75
         db.commit()
 
-        classification = classify_flows(features_list)
+        # Detailed classification — same pipeline as the sync /api/classify
+        # endpoint, so the async result carries full per-flow / per-device / VPN detail.
+        classification = classify_flows_detailed(features_list)
+        devices = classify_by_device(features_list)
+
+        # Drop the heavy per-flow list from each device (mirrors DeviceResult schema)
+        devices_clean = [
+            {
+                "source_ip":     d["source_ip"],
+                "flow_count":    d["flow_count"],
+                "predicted_app": d["predicted_app"],
+                "confidence":    d["confidence"],
+                "predictions":   d["predictions"],
+            }
+            for d in devices
+        ]
 
         # Stage 4 — save result
         result = AnalysisResult(
@@ -71,6 +86,9 @@ def _process(job_id: int, file_path: str) -> None:
             packet_count=total_packets,
             processing_time=round(time.time() - start, 2),
             predictions_json=json.dumps(classification["predictions"]),
+            vpn_detected=classification["vpn_detected"],
+            flows_json=json.dumps(classification["flows"]),
+            devices_json=json.dumps(devices_clean),
         )
         db.add(result)
 

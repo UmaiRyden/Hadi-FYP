@@ -45,22 +45,6 @@ class PredictionItem(BaseModel):
     confidence: float
 
 
-class AnalysisResult(BaseModel):
-    job_id: int
-    status: str
-    progress: int
-    original_filename: Optional[str] = None
-    predicted_app: Optional[str] = None
-    confidence: Optional[float] = None
-    flow_count: Optional[int] = None
-    packet_count: Optional[int] = None
-    processing_time: Optional[float] = None
-    predictions: Optional[List[PredictionItem]] = None
-    error_message: Optional[str] = None
-
-
-# ── Classify (synchronous, per-flow) ─────────────────────────────────────────
-
 class FlowResult(BaseModel):
     flow_key: str
     predicted_app: str
@@ -76,6 +60,25 @@ class DeviceResult(BaseModel):
     confidence: float
     predictions: List[PredictionItem]
 
+
+class AnalysisResult(BaseModel):
+    job_id: int
+    status: str
+    progress: int
+    original_filename: Optional[str] = None
+    predicted_app: Optional[str] = None
+    confidence: Optional[float] = None
+    flow_count: Optional[int] = None
+    packet_count: Optional[int] = None
+    processing_time: Optional[float] = None
+    predictions: Optional[List[PredictionItem]] = None
+    vpn_detected: Optional[bool] = None
+    flows: Optional[List[FlowResult]] = None
+    devices: Optional[List[DeviceResult]] = None
+    error_message: Optional[str] = None
+
+
+# ── Classify (synchronous, per-flow) ─────────────────────────────────────────
 
 class ClassifyResponse(BaseModel):
     predicted_app: str

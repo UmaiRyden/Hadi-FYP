@@ -7,14 +7,15 @@ from fastapi.middleware.cors import CORSMiddleware
 
 load_dotenv()
 
-from database import Base, engine
+from database import Base, engine, run_migrations
 from routers import analysis, auth, capture, performance, upload
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Initialise database tables
+    # Initialise database tables, then apply incremental column migrations
     Base.metadata.create_all(bind=engine)
+    run_migrations()
     # Ensure uploads directory exists
     os.makedirs(
         os.path.join(os.path.dirname(__file__), "uploads"), exist_ok=True

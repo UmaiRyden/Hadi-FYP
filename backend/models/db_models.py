@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Float, DateTime, Text, ForeignKey
+from sqlalchemy import Column, Integer, String, Float, Boolean, DateTime, Text, ForeignKey
 from sqlalchemy.orm import relationship
 from datetime import datetime, timezone
 
@@ -45,5 +45,11 @@ class AnalysisResult(Base):
     packet_count = Column(Integer, nullable=False)
     processing_time = Column(Float, nullable=False)   # seconds
     predictions_json = Column(Text, nullable=False)   # JSON: [{"app": ..., "confidence": ...}]
+    # Full per-flow / per-device / VPN detail — added so the async pipeline returns
+    # the same complete result as the sync /api/classify endpoint. Nullable so the
+    # column can be added to existing rows without a backfill default.
+    vpn_detected = Column(Boolean, nullable=True)     # True if majority of flows are VPN
+    flows_json = Column(Text, nullable=True)          # JSON: [FlowResult, ...]
+    devices_json = Column(Text, nullable=True)        # JSON: [DeviceResult, ...]
 
     job = relationship("AnalysisJob", back_populates="result")

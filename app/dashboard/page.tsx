@@ -8,10 +8,9 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { GL } from "@/components/gl"
 import Link from "next/link"
-import { startClassify } from "@/lib/classify-store"
 import { uploadPcap } from "@/lib/api"
 
-type AnalysisStatus = "idle" | "uploading" | "uploading-live" | "error"
+type AnalysisStatus = "idle" | "uploading-live" | "error"
 
 export default function DashboardPage() {
   const router = useRouter()
@@ -40,14 +39,6 @@ export default function DashboardPage() {
     if (file) setUploadedFile(file)
   }
 
-  const handleRunAnalysis = () => {
-    if (!uploadedFile) return
-    setStatus("uploading")
-    setErrorMsg("")
-    startClassify(uploadedFile)
-    router.push("/processing")
-  }
-
   const handleLiveAnalysis = async () => {
     if (!uploadedFile) return
     setStatus("uploading-live")
@@ -63,15 +54,13 @@ export default function DashboardPage() {
   }
 
   const statusColor: Record<AnalysisStatus, string> = {
-    idle:           "bg-foreground/20 text-foreground/60",
-    uploading:      "bg-primary/20 text-primary",
+    idle:             "bg-foreground/20 text-foreground/60",
     "uploading-live": "bg-primary/20 text-primary",
-    error:          "bg-red-500/20 text-red-400",
+    error:            "bg-red-500/20 text-red-400",
   }
 
   const statusLabel: Record<AnalysisStatus, string> = {
     idle:             "Idle",
-    uploading:        "Uploading…",
     "uploading-live": "Uploading…",
     error:            "Error",
   }
@@ -133,23 +122,13 @@ export default function DashboardPage() {
 
             <div className="mt-8 flex flex-col gap-3">
               <Button
-                onClick={handleRunAnalysis}
-                disabled={!uploadedFile || status === "uploading" || status === "uploading-live"}
-                className="w-full"
-                onMouseEnter={() => setHovering(true)}
-                onMouseLeave={() => setHovering(false)}
-              >
-                {status === "uploading" ? "Uploading…" : "[Run Analysis]"}
-              </Button>
-
-              <Button
                 onClick={handleLiveAnalysis}
-                disabled={!uploadedFile || status === "uploading" || status === "uploading-live"}
+                disabled={!uploadedFile || status === "uploading-live"}
                 className="w-full bg-transparent border border-primary/40 text-primary hover:bg-primary/10"
                 onMouseEnter={() => setHovering(true)}
                 onMouseLeave={() => setHovering(false)}
               >
-                {status === "uploading-live" ? "Uploading…" : "[Live Analysis →]"}
+                {status === "uploading-live" ? "Uploading…" : "[Run Analysis]"}
               </Button>
 
               <p className="text-foreground/30 text-xs text-center">

@@ -43,5 +43,12 @@ def get_result(job_id: int, db: Session = Depends(get_db)):
             [DeviceResult(**d) for d in json.loads(r.devices_json)]
             if r.devices_json else []
         )
+    elif job.partial_predictions_json:
+        # Job still running — surface the running confidence distribution so the
+        # live view can grow its bars toward the final values in real time.
+        response.predictions = [
+            PredictionItem(**p) for p in json.loads(job.partial_predictions_json)
+        ]
+        response.flow_count = job.processed_flows
 
     return response

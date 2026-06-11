@@ -135,6 +135,41 @@ def classify_flows(features_list: List[Dict]) -> Dict:
     }
 
 
+def classify_flows_running(features_list: List[Dict], on_update, batch_size: int = 10) -> None:
+    """
+    Classify every flow once, but invoke on_update(processed, total, predictions)
+    after every `batch_size` flows with the running confidence distribution —
+    the cumulative average of predict_proba over the flows seen so far.
+
+    `predictions` is the sorted aggregate [{"app", "confidence"}] across the
+    flows processed so far (same shape as classify_flows). This lets the caller
+    stream genuine partial results to the DB instead of faking a progress bar.
+    """
+    if not features_list:
+        return
+
+    model = load_model()
+    X = np.array(
+        [[f.get(feat, 0.0) for feat in FEATURE_ORDER] for f in features_list]
+    )
+    proba = model.predict_proba(X)          # (n_flows, n_classes)
+    classes = model.classes_
+    total = len(features_list)
+    running_sum = np.zeros(len(classes))
+
+    for i in range(total):
+        running_sum += proba[i]
+        done = i + 1
+        if done % batch_size == 0 or done == total:
+            avg = running_sum / done
+            preds = sorted(
+                ({"app": c, "confidence": round(float(p) * 100, 1)} for c, p in zip(classes, avg)),
+                key=lambda x: x["confidence"],
+                reverse=True,
+            )
+            on_update(done, total, preds)
+
+
 def classify_flows_detailed(features_list: List[Dict]) -> Dict:
     """
     Like classify_flows, but also returns a per-flow breakdown.

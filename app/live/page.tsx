@@ -44,16 +44,6 @@ const STATUS_PROGRESS: Record<string, number> = {
   failed:      0,
 }
 
-// Per-class growth rate per tick (adds realism — not equal speeds)
-const GROWTH_RATES: Record<string, number> = {
-  FACEBOOK:  2.2,
-  INSTAGRAM: 1.1,
-  WHATSAPP:  1.6,
-  YOUTUBE:   1.9,
-}
-// Max value bars can reach while still pending (stays below 50 so real reveal is dramatic)
-const MAX_PENDING = 47
-
 // ── Types ──────────────────────────────────────────────────────────────────────
 
 interface ChartEntry { name: string; value: number }
@@ -89,18 +79,16 @@ export default function LivePage() {
   const [chartData,    setChartData]    = useState<ChartEntry[]>(
     CLASSES.map(name => ({ name, value: 0 }))
   )
-  // false during growth phase → no Recharts per-update animation (avoids jitter)
-  // true only for the final reveal → smooth Recharts transition
+  // false while bars track the live running averages (no per-update animation
+  // so stepwise polls don't jitter) → true only for the final reveal snap.
   const [animateFinal, setAnimateFinal] = useState(false)
 
   const pollRef   = useRef<ReturnType<typeof setInterval> | null>(null)
-  const growRef   = useRef<ReturnType<typeof setInterval> | null>(null)
   const doneRef   = useRef(false)   // prevents stale-closure double-completion
 
-  // ── Stop both intervals ────────────────────────────────────────────────────
+  // ── Stop polling ────────────────────────────────────────────────────────────
   const stopAll = () => {
-    if (pollRef.current)  clearInterval(pollRef.current)
-    if (growRef.current)  clearInterval(growRef.current)
+    if (pollRef.current) clearInterval(pollRef.current)
   }
 
   // ── On completion: hand the live result to the result page ─────────────────
@@ -137,7 +125,14 @@ export default function LivePage() {
     })))
   }
 
-  // ── Bootstrap: read job_id, start polling + growth ─────────────────────────
+  // ── On running poll: move bars toward the live running averages ────────────
+  const updateRunning = (predictions: PredictionItem[]) => {
+    const predMap = Object.fromEntries(predictions.map(p => [p.app, p.confidence]))
+    setAnimateFinal(false)   // direct update; the 500ms cadence reads as growth
+    setChartData(CLASSES.map(name => ({ name, value: predMap[name] ?? 0 })))
+  }
+
+  // ── Bootstrap: read job_id, start polling ──────────────────────────────────
   useEffect(() => {
     const jobId = parseInt(localStorage.getItem("job_id") ?? "0", 10)
     if (!jobId) { router.replace("/dashboard"); return }
@@ -148,17 +143,25 @@ export default function LivePage() {
         const data = await getResult(jobId)
         setResult(data)
         setJobStatus(data.status)
-        setProgress(STATUS_PROGRESS[data.status] ?? data.progress)
+        // Prefer the backend's granular classify progress (75→99); fall back to
+        // the per-stage map for parsing/extracting.
+        setProgress(
+          data.status === "classifying"
+            ? (data.progress ?? STATUS_PROGRESS.classifying)
+            : (STATUS_PROGRESS[data.status] ?? data.progress)
+        )
 
         if (data.status === "completed" && !doneRef.current) {
           doneRef.current = true
           persistResult(data)
           if (data.predictions?.length) revealResult(data.predictions)
-        }
-
-        if (data.status === "failed" && !doneRef.current) {
+          else stopAll()
+        } else if (data.status === "failed" && !doneRef.current) {
           doneRef.current = true
           stopAll()
+        } else if (!doneRef.current && data.predictions?.length) {
+          // Still running — bars track the real running averages from the server.
+          updateRunning(data.predictions)
         }
       } catch {
         // network hiccup — keep polling
@@ -167,20 +170,6 @@ export default function LivePage() {
 
     poll()
     pollRef.current = setInterval(poll, 500)
-
-    // ── Grow bars at 150ms — fast enough to look live ────────────────────────
-    growRef.current = setInterval(() => {
-      if (doneRef.current) return
-      setChartData(prev =>
-        prev.map(d => ({
-          ...d,
-          value: Math.min(
-            d.value + Math.random() * (GROWTH_RATES[d.name] ?? 1.5),
-            MAX_PENDING,
-          ),
-        }))
-      )
-    }, 150)
 
     return stopAll
     // eslint-disable-next-line react-hooks/exhaustive-deps

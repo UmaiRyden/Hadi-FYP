@@ -44,6 +44,11 @@ def run_migrations():
             "flows_json": "TEXT",
             "devices_json": "TEXT",
         },
+        "analysis_jobs": {
+            "total_flows": "INTEGER",
+            "processed_flows": "INTEGER",
+            "partial_predictions_json": "TEXT",
+        },
     }
 
     inspector = inspect(engine)

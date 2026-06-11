@@ -10,7 +10,7 @@ from sqlalchemy.orm import Session
 from database import SessionLocal, get_db
 from models.db_models import AnalysisJob, AnalysisResult
 from schemas.schemas import ClassifyResponse, DeviceResult, FlowResult, PredictionItem, UploadResponse
-from services.classifier import classify_flows_detailed, classify_by_device
+from services.classifier import classify_flows_detailed, classify_by_device, classify_flows_running
 from services.feature_extractor import extract_all_features
 from services.pcap_parser import parse_pcap
 
@@ -55,10 +55,29 @@ def _process(job_id: int, file_path: str) -> None:
             db.commit()
             return
 
-        # Stage 3 — classify
+        # Stage 3 — classify, streaming running confidence to the DB so the
+        # live view can show real progressive averages (not a fake animation).
         job.status = "classifying"
         job.progress = 75
+        job.total_flows = len(features_list)
+        job.processed_flows = 0
+        job.partial_predictions_json = None
         db.commit()
+
+        total = len(features_list)
+        # Cap progressive updates to ~50 regardless of flow count (floor of 10/flow).
+        step = max(10, total // 50)
+
+        def _on_update(done: int, total_: int, preds: list) -> None:
+            job.partial_predictions_json = json.dumps(preds)
+            job.processed_flows = done
+            job.progress = 75 + int(24 * done / total_)   # 75 -> 99 across classify
+            db.commit()
+            # Modest pace so the 500ms client poll can observe the averages grow.
+            # The VALUES are the real running averages — only the cadence is paced.
+            time.sleep(0.04)
+
+        classify_flows_running(features_list, _on_update, batch_size=step)
 
         # Detailed classification — same pipeline as the sync /api/classify
         # endpoint, so the async result carries full per-flow / per-device / VPN detail.

@@ -29,6 +29,12 @@ class AnalysisJob(Base):
     error_message = Column(Text, nullable=True)
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
     completed_at = Column(DateTime, nullable=True)
+    # Running classification state — updated every N flows during the classify
+    # stage so the live view shows real progressive confidence (not a fake
+    # animation). Nullable so they can be added to existing rows by migration.
+    total_flows = Column(Integer, nullable=True)               # flows to classify
+    processed_flows = Column(Integer, nullable=True)           # flows classified so far
+    partial_predictions_json = Column(Text, nullable=True)     # running [{"app","confidence"}]
 
     user = relationship("User", back_populates="jobs")
     result = relationship("AnalysisResult", back_populates="job", uselist=False)

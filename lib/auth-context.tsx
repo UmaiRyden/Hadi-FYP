@@ -26,9 +26,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true)
 
   // Hydrate auth state from localStorage once on mount (client-only).
+  // try/finally guarantees `loading` clears even if storage access throws
+  // (e.g. private mode) — otherwise a guard could sit on "Checking…" forever.
   useEffect(() => {
-    setUser(getStoredUser())
-    setLoading(false)
+    try {
+      setUser(getStoredUser())
+    } catch {
+      setUser(null)
+    } finally {
+      setLoading(false)
+    }
 
     // Keep tabs in sync — logging out in one tab updates the others.
     const onStorage = (e: StorageEvent) => {

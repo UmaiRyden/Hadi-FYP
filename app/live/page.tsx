@@ -79,16 +79,62 @@ export default function LivePage() {
   const [chartData,    setChartData]    = useState<ChartEntry[]>(
     CLASSES.map(name => ({ name, value: 0 }))
   )
-  // false while bars track the live running averages (no per-update animation
-  // so stepwise polls don't jitter) → true only for the final reveal snap.
-  const [animateFinal, setAnimateFinal] = useState(false)
 
   const pollRef   = useRef<ReturnType<typeof setInterval> | null>(null)
+  const rafRef    = useRef<number | null>(null)
   const doneRef   = useRef(false)   // prevents stale-closure double-completion
 
-  // ── Stop polling ────────────────────────────────────────────────────────────
+  // Recharts animation is fully disabled (animationDuration=0); we tween the bar
+  // values ourselves with requestAnimationFrame so growth is smooth and fully
+  // controllable — no Recharts pulse/flicker when updates arrive rapidly.
+  const displayedRef = useRef<Record<string, number>>(
+    Object.fromEntries(CLASSES.map(n => [n, 0]))
+  )
+  const tweenRef = useRef<{
+    from: Record<string, number>
+    to:   Record<string, number>
+    start: number
+    dur:   number
+  } | null>(null)
+
+  const easeOutCubic = (t: number) => 1 - Math.pow(1 - t, 3)
+
+  // rAF loop: eases the displayed values toward the active tween's targets.
+  const tick = (now: number) => {
+    const tw = tweenRef.current
+    if (!tw) { rafRef.current = null; return }
+    const t = Math.min((now - tw.start) / tw.dur, 1)
+    const e = easeOutCubic(t)
+    const next: Record<string, number> = {}
+    for (const name of CLASSES) {
+      const from = tw.from[name] ?? 0
+      const to   = tw.to[name]   ?? 0
+      next[name] = from + (to - from) * e
+    }
+    displayedRef.current = next
+    setChartData(CLASSES.map(name => ({ name, value: next[name] })))
+    rafRef.current = t < 1 ? requestAnimationFrame(tick) : null
+  }
+
+  // Tween from the CURRENT displayed values to new targets over `dur` ms.
+  // Re-called on every poll: a mid-flight tween is replaced by one starting from
+  // wherever the bars are now, so motion stays smooth toward the latest average.
+  // First call (bars at 0) tweens 0 → first running average over 600ms.
+  const tweenTo = (predictions: PredictionItem[], dur: number) => {
+    const predMap = Object.fromEntries(predictions.map(p => [p.app, p.confidence]))
+    tweenRef.current = {
+      from:  { ...displayedRef.current },
+      to:    Object.fromEntries(CLASSES.map(n => [n, predMap[n] ?? 0])),
+      start: performance.now(),
+      dur,
+    }
+    if (rafRef.current == null) rafRef.current = requestAnimationFrame(tick)
+  }
+
+  // ── Stop polling + any running tween ────────────────────────────────────────
   const stopAll = () => {
     if (pollRef.current) clearInterval(pollRef.current)
+    if (rafRef.current != null) { cancelAnimationFrame(rafRef.current); rafRef.current = null }
   }
 
   // ── On completion: hand the live result to the result page ─────────────────
@@ -113,23 +159,15 @@ export default function LivePage() {
     localStorage.setItem("classify_filename", data.original_filename ?? "")
   }
 
-  // ── On completion: reveal real values ──────────────────────────────────────
+  // ── On completion: stop polling, then settle to the clean final values ──────
   const revealResult = (predictions: PredictionItem[]) => {
-    stopAll()
-    // Sort to match CLASSES order so bar identity stays stable
-    const predMap = Object.fromEntries(predictions.map(p => [p.app, p.confidence]))
-    setAnimateFinal(true)
-    setChartData(CLASSES.map(name => ({
-      name,
-      value: predMap[name] ?? 0,
-    })))
+    if (pollRef.current) clearInterval(pollRef.current)   // stop polling, keep tween alive
+    tweenTo(predictions, 700)                             // settle from current bars → final
   }
 
-  // ── On running poll: animate bars toward the live running averages ─────────
+  // ── On running poll: tween bars toward the live running averages over 600ms ─
   const updateRunning = (predictions: PredictionItem[]) => {
-    const predMap = Object.fromEntries(predictions.map(p => [p.app, p.confidence]))
-    setAnimateFinal(false)   // 400ms Recharts tween from current bar value to new
-    setChartData(CLASSES.map(name => ({ name, value: predMap[name] ?? 0 })))
+    tweenTo(predictions, 600)
   }
 
   // ── Bootstrap: read job_id, start polling ──────────────────────────────────
@@ -306,9 +344,8 @@ export default function LivePage() {
                   <Bar
                     dataKey="value"
                     radius={[0, 4, 4, 0]}
-                    isAnimationActive={true}
-                    animationDuration={animateFinal ? 900 : 400}
-                    animationEasing="ease-out"
+                    isAnimationActive={false}
+                    animationDuration={0}
                   >
                     <LabelList
                       dataKey="value"

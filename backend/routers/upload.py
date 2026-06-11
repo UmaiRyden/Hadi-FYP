@@ -1,4 +1,5 @@
 import json
+import math
 import os
 import time
 import uuid
@@ -65,17 +66,21 @@ def _process(job_id: int, file_path: str) -> None:
         db.commit()
 
         total = len(features_list)
-        # Cap progressive updates to ~50 regardless of flow count (floor of 10/flow).
-        step = max(10, total // 50)
+        # Cap progressive updates at 30 batches. Pace each batch at >=0.25s and
+        # stretch when there are few batches so the classify phase always lasts
+        # >=4.5s regardless of flow count — giving the bars time to visibly grow.
+        step = max(1, math.ceil(total / 30))
+        n_updates = math.ceil(total / step)
+        pace = max(0.25, 4.5 / n_updates)
 
         def _on_update(done: int, total_: int, preds: list) -> None:
             job.partial_predictions_json = json.dumps(preds)
             job.processed_flows = done
             job.progress = 75 + int(24 * done / total_)   # 75 -> 99 across classify
             db.commit()
-            # Pace each batch so the client poll can observe the averages grow.
+            # Pace each batch so the client poll observes the averages grow.
             # The VALUES are the real running averages — only the cadence is paced.
-            time.sleep(0.15)
+            time.sleep(pace)
 
         classify_flows_running(features_list, _on_update, batch_size=step)
 

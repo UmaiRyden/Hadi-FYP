@@ -73,9 +73,9 @@ def _process(job_id: int, file_path: str) -> None:
             job.processed_flows = done
             job.progress = 75 + int(24 * done / total_)   # 75 -> 99 across classify
             db.commit()
-            # Modest pace so the 500ms client poll can observe the averages grow.
+            # Pace each batch so the client poll can observe the averages grow.
             # The VALUES are the real running averages — only the cadence is paced.
-            time.sleep(0.04)
+            time.sleep(0.15)
 
         classify_flows_running(features_list, _on_update, batch_size=step)
 

@@ -125,10 +125,10 @@ export default function LivePage() {
     })))
   }
 
-  // ── On running poll: move bars toward the live running averages ────────────
+  // ── On running poll: animate bars toward the live running averages ─────────
   const updateRunning = (predictions: PredictionItem[]) => {
     const predMap = Object.fromEntries(predictions.map(p => [p.app, p.confidence]))
-    setAnimateFinal(false)   // direct update; the 500ms cadence reads as growth
+    setAnimateFinal(false)   // 400ms Recharts tween from current bar value to new
     setChartData(CLASSES.map(name => ({ name, value: predMap[name] ?? 0 })))
   }
 
@@ -137,7 +137,7 @@ export default function LivePage() {
     const jobId = parseInt(localStorage.getItem("job_id") ?? "0", 10)
     if (!jobId) { router.replace("/dashboard"); return }
 
-    // ── Poll every 500ms ────────────────────────────────────────────────────
+    // ── Poll every 250ms ────────────────────────────────────────────────────
     const poll = async () => {
       try {
         const data = await getResult(jobId)
@@ -169,7 +169,7 @@ export default function LivePage() {
     }
 
     poll()
-    pollRef.current = setInterval(poll, 500)
+    pollRef.current = setInterval(poll, 250)
 
     return stopAll
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -306,8 +306,8 @@ export default function LivePage() {
                   <Bar
                     dataKey="value"
                     radius={[0, 4, 4, 0]}
-                    isAnimationActive={animateFinal}
-                    animationDuration={900}
+                    isAnimationActive={true}
+                    animationDuration={animateFinal ? 900 : 400}
                     animationEasing="ease-out"
                   >
                     <LabelList

@@ -181,7 +181,7 @@ export default function ResultPage() {
           {/* ── Confidence bar chart (Recharts) ──────────────────────────── */}
           <Card className="border-primary/20 bg-background/95 backdrop-blur-sm shadow-[0_0_20px_rgba(255,199,0,0.1)]">
             <CardContent className="pt-8">
-              <p className="text-foreground/80 font-sentient text-lg mb-6">
+              <p className="text-primary font-sentient text-lg mb-6">
                 Confidence Distribution
               </p>
               <ResponsiveContainer width="100%" height={200}>
@@ -199,13 +199,15 @@ export default function ResultPage() {
                     type="number"
                     domain={[0, 100]}
                     tickFormatter={(v) => `${v}%`}
-                    stroke="rgba(255,255,255,0.3)"
+                    stroke="rgba(255,255,255,0.25)"
+                    tick={{ fill: "rgba(255,255,255,0.6)" }}
                     fontSize={11}
                   />
                   <YAxis
                     type="category"
                     dataKey="name"
-                    stroke="rgba(255,255,255,0.3)"
+                    stroke="rgba(255,255,255,0.25)"
+                    tick={{ fill: "rgba(255,255,255,0.9)" }}
                     fontSize={11}
                     width={85}
                   />
@@ -238,7 +240,7 @@ export default function ResultPage() {
             <Card className="border-primary/20 bg-background/95 backdrop-blur-sm shadow-[0_0_20px_rgba(255,199,0,0.1)]">
               <CardContent className="pt-8">
                 <div className="flex items-center justify-between mb-6">
-                  <p className="text-foreground/80 font-sentient text-lg">
+                  <p className="text-primary font-sentient text-lg">
                     Per-Device Classification
                   </p>
                   <span className="text-foreground/40 text-sm">
@@ -329,7 +331,7 @@ export default function ResultPage() {
             <Card className="border-primary/20 bg-background/95 backdrop-blur-sm shadow-[0_0_20px_rgba(255,199,0,0.1)]">
               <CardContent className="pt-8">
                 <div className="flex items-center justify-between mb-6">
-                  <p className="text-foreground/80 font-sentient text-lg">
+                  <p className="text-primary font-sentient text-lg">
                     Per-Flow Breakdown
                   </p>
                   <span className="text-foreground/40 text-sm">

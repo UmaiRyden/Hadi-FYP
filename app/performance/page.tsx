@@ -77,7 +77,7 @@ export default function PerformancePage() {
           <Card className="border-primary/20 bg-background/95 backdrop-blur-sm shadow-[0_0_20px_rgba(255,199,0,0.1)] mb-8">
             <CardContent className="pt-8">
               <div className="mb-8">
-                <p className="text-foreground/80 font-sentient text-lg">Confusion Matrix</p>
+                <p className="text-primary font-sentient text-lg">Confusion Matrix</p>
                 <p className="text-foreground/60 text-sm mt-2">
                   True vs Predicted Classifications (test set)
                 </p>

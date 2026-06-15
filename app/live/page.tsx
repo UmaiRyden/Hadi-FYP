@@ -289,7 +289,7 @@ export default function LivePage() {
           >
             <CardContent className="pt-8 pb-8">
               <div className="flex items-center justify-between mb-6">
-                <p className="text-foreground/80 font-sentient text-lg">
+                <p className="text-primary font-sentient text-lg">
                   Confidence Distribution
                 </p>
                 {!isComplete && !isFailed && (
@@ -329,6 +329,7 @@ export default function LivePage() {
                     domain={[0, 100]}
                     tickFormatter={v => `${v}%`}
                     stroke="rgba(255,255,255,0.2)"
+                    tick={{ fill: "rgba(255,255,255,0.6)" }}
                     fontSize={10}
                     tickLine={false}
                   />
@@ -336,6 +337,7 @@ export default function LivePage() {
                     type="category"
                     dataKey="name"
                     stroke="rgba(255,255,255,0.2)"
+                    tick={{ fill: "rgba(255,255,255,0.9)" }}
                     fontSize={11}
                     width={90}
                     tickLine={false}

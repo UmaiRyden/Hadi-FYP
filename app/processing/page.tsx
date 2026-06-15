@@ -108,7 +108,7 @@ export default function ProcessingPage() {
           <Card className="border-primary/20 bg-background/95 backdrop-blur-sm shadow-[0_0_20px_rgba(255,199,0,0.1)] mb-8">
             <CardContent className="pt-8">
               <div className="mb-8">
-                <div className="text-foreground/80 font-sentient text-lg mb-4">
+                <div className="text-primary font-sentient text-lg mb-4">
                   Feature Extraction Progress
                 </div>
                 <Progress value={displayProgress} className="h-2 bg-foreground/10" />

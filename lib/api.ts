@@ -114,6 +114,23 @@ async function handleResponse<T>(res: Response): Promise<T> {
   return res.json() as Promise<T>
 }
 
+/**
+ * Like handleResponse, but for endpoints that require authentication.
+ * A 401 means the stored JWT is missing/expired/invalid (e.g. the token aged
+ * out after its 24h lifetime while the cached user info lingered). Clear the
+ * dead session and bounce to login via a full reload so the auth context
+ * re-hydrates from the now-empty localStorage.
+ */
+async function handleAuthedResponse<T>(res: Response): Promise<T> {
+  if (res.status === 401 && typeof window !== "undefined") {
+    logout()
+    if (window.location.pathname !== "/login") {
+      window.location.href = "/login"
+    }
+  }
+  return handleResponse<T>(res)
+}
+
 // ── Auth ───────────────────────────────────────────────────────────────────────
 
 export async function login(email: string, password: string): Promise<AuthResponse> {
@@ -214,7 +231,7 @@ export async function getHistory(): Promise<HistoryItem[]> {
   const res = await fetch(`${API_BASE}/api/history`, {
     headers: authHeaders(),
   })
-  return handleResponse<HistoryItem[]>(res)
+  return handleAuthedResponse<HistoryItem[]>(res)
 }
 
 /** A single saved analysis, scoped to the owner. Requires auth. */
@@ -222,5 +239,5 @@ export async function getHistoryItem(id: number): Promise<HistoryItem> {
   const res = await fetch(`${API_BASE}/api/history/${id}`, {
     headers: authHeaders(),
   })
-  return handleResponse<HistoryItem>(res)
+  return handleAuthedResponse<HistoryItem>(res)
 }

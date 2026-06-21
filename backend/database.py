@@ -53,8 +53,38 @@ def run_migrations():
 
     inspector = inspect(engine)
     existing_tables = set(inspector.get_table_names())
+    is_postgres = engine.dialect.name == "postgresql"
+
+    # ── New tables ──────────────────────────────────────────────────────────────
+    # Created idempotently with CREATE TABLE IF NOT EXISTS. Base.metadata.create_all
+    # also builds these from the ORM models, so this is normally a no-op — but it
+    # keeps the schema self-describing and works standalone on SQLite (dev) and
+    # PostgreSQL (prod). Only the auto-increment PK syntax differs between dialects.
+    pk = "SERIAL PRIMARY KEY" if is_postgres else "INTEGER PRIMARY KEY AUTOINCREMENT"
+    new_tables = {
+        "analysis_history": f"""
+            CREATE TABLE IF NOT EXISTS analysis_history (
+                id {pk},
+                user_id INTEGER NOT NULL REFERENCES users(id),
+                original_filename VARCHAR NOT NULL,
+                predicted_app VARCHAR NOT NULL,
+                confidence FLOAT NOT NULL,
+                match_strength VARCHAR NOT NULL,
+                flow_count INTEGER NOT NULL,
+                packet_count INTEGER NOT NULL,
+                vpn_detected BOOLEAN NOT NULL DEFAULT FALSE,
+                created_at TIMESTAMP
+            )
+        """,
+    }
 
     with engine.begin() as conn:
+        # Create any missing tables first.
+        for table, ddl in new_tables.items():
+            if table not in existing_tables:
+                conn.execute(text(ddl))
+
+        # Then ADD any missing columns on pre-existing tables.
         for table, columns in additions.items():
             if table not in existing_tables:
                 continue  # create_all will build it with all columns

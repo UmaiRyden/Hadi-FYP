@@ -1,8 +1,9 @@
 import os
 from datetime import datetime, timedelta, timezone
+from typing import Optional
 
-from fastapi import APIRouter, Depends, HTTPException
-from jose import jwt
+from fastapi import APIRouter, Depends, Header, HTTPException
+from jose import JWTError, jwt
 from passlib.context import CryptContext
 from sqlalchemy.orm import Session
 
@@ -37,6 +38,41 @@ def _verify(plain: str, hashed: str) -> bool:
 def _make_token(user_id: int) -> str:
     expire = datetime.now(timezone.utc) + timedelta(hours=TOKEN_EXPIRE_HOURS)
     return jwt.encode({"sub": str(user_id), "exp": expire}, SECRET_KEY, algorithm=ALGORITHM)
+
+
+def _user_from_token(authorization: Optional[str], db: Session) -> Optional[User]:
+    """Decode a `Bearer <jwt>` Authorization header and return the User, or None
+    if the header is missing/malformed/invalid/expired."""
+    if not authorization or not authorization.lower().startswith("bearer "):
+        return None
+    token = authorization.split(" ", 1)[1].strip()
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        user_id = int(payload["sub"])
+    except (JWTError, KeyError, ValueError):
+        return None
+    return db.query(User).filter(User.id == user_id).first()
+
+
+def get_current_user(
+    authorization: Optional[str] = Header(default=None),
+    db: Session = Depends(get_db),
+) -> User:
+    """Require a valid JWT. Raises 401 if absent or invalid."""
+    user = _user_from_token(authorization, db)
+    if user is None:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    return user
+
+
+def get_current_user_optional(
+    authorization: Optional[str] = Header(default=None),
+    db: Session = Depends(get_db),
+) -> Optional[User]:
+    """Return the current user if a valid JWT is present, else None.
+    Used by the classification endpoints so analyses are linked to a user when
+    signed in, without forcing authentication on anonymous use."""
+    return _user_from_token(authorization, db)
 
 
 @router.post("/signup", response_model=Token)

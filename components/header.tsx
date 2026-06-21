@@ -35,6 +35,7 @@ export const Header = () => {
           {[
             { label: "Upload PCAP", href: "/dashboard" },
             { label: "Results", href: "/result" },
+            { label: "History", href: "/history" },
             { label: "Performance", href: "/performance" },
           ].map((item) => (
             <Link

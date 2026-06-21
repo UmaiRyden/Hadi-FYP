@@ -15,6 +15,7 @@ class User(Base):
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
 
     jobs = relationship("AnalysisJob", back_populates="user")
+    history = relationship("AnalysisHistory", back_populates="user")
 
 
 class AnalysisJob(Base):
@@ -59,3 +60,27 @@ class AnalysisResult(Base):
     devices_json = Column(Text, nullable=True)        # JSON: [DeviceResult, ...]
 
     job = relationship("AnalysisJob", back_populates="result")
+
+
+class AnalysisHistory(Base):
+    """A lightweight, per-user record of a completed classification.
+
+    Saved automatically after every successful classification (sync and async)
+    so a signed-in user can review their recent analyses. Stores only the
+    summary — the heavy per-flow/device detail lives on AnalysisResult.
+    """
+
+    __tablename__ = "analysis_history"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    original_filename = Column(String, nullable=False)
+    predicted_app = Column(String, nullable=False)
+    confidence = Column(Float, nullable=False)
+    match_strength = Column(String, nullable=False)   # High | Medium | Low
+    flow_count = Column(Integer, nullable=False)
+    packet_count = Column(Integer, nullable=False)
+    vpn_detected = Column(Boolean, nullable=False, default=False)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), index=True)
+
+    user = relationship("User", back_populates="history")

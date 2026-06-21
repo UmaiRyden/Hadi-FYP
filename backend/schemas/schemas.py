@@ -92,6 +92,22 @@ class ClassifyResponse(BaseModel):
     devices: List[DeviceResult]            # per-device breakdown
 
 
+# ── Analysis History ──────────────────────────────────────────────────────────
+
+class HistoryItem(BaseModel):
+    id: int
+    original_filename: str
+    predicted_app: str
+    confidence: float
+    match_strength: str
+    flow_count: int
+    packet_count: int
+    vpn_detected: bool
+    created_at: datetime
+
+    model_config = {"from_attributes": True}
+
+
 # ── Performance Metrics ───────────────────────────────────────────────────────
 
 class ConfusionMatrix(BaseModel):

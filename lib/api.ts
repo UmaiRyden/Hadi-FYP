@@ -75,6 +75,18 @@ export interface PerformanceMetrics {
   feature_names: string[]
 }
 
+export interface HistoryItem {
+  id: number
+  original_filename: string
+  predicted_app: string
+  confidence: number
+  match_strength: string
+  flow_count: number
+  packet_count: number
+  vpn_detected: boolean
+  created_at: string
+}
+
 export interface AuthResponse {
   access_token: string
   token_type: string
@@ -193,4 +205,22 @@ export async function getResult(jobId: number): Promise<AnalysisResult> {
 export async function getPerformance(): Promise<PerformanceMetrics> {
   const res = await fetch(`${API_BASE}/api/performance`)
   return handleResponse<PerformanceMetrics>(res)
+}
+
+// ── History ────────────────────────────────────────────────────────────────────
+
+/** The signed-in user's 10 most recent analyses (newest first). Requires auth. */
+export async function getHistory(): Promise<HistoryItem[]> {
+  const res = await fetch(`${API_BASE}/api/history`, {
+    headers: authHeaders(),
+  })
+  return handleResponse<HistoryItem[]>(res)
+}
+
+/** A single saved analysis, scoped to the owner. Requires auth. */
+export async function getHistoryItem(id: number): Promise<HistoryItem> {
+  const res = await fetch(`${API_BASE}/api/history/${id}`, {
+    headers: authHeaders(),
+  })
+  return handleResponse<HistoryItem>(res)
 }

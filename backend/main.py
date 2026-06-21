@@ -8,7 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 load_dotenv()
 
 from database import Base, engine, run_migrations
-from routers import analysis, auth, capture, performance, upload
+from routers import analysis, auth, capture, history, performance, upload
 
 
 @asynccontextmanager
@@ -49,6 +49,7 @@ app.include_router(upload.router)
 app.include_router(analysis.router)
 app.include_router(performance.router)
 app.include_router(capture.router)
+app.include_router(history.router)
 
 
 @app.get("/")

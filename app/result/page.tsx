@@ -411,7 +411,7 @@ export default function ResultPage() {
           )}
 
           {/* ── Actions ───────────────────────────────────────────────────── */}
-          <div className="flex justify-center">
+          <div className="flex flex-col sm:flex-row justify-center gap-4">
             <Link href="/dashboard">
               <Button
                 className="px-8 w-full sm:w-auto"
@@ -419,6 +419,11 @@ export default function ResultPage() {
                 onMouseLeave={() => setHovering(false)}
               >
                 [Analyze Another File]
+              </Button>
+            </Link>
+            <Link href="/history">
+              <Button className="px-8 w-full sm:w-auto">
+                [View History]
               </Button>
             </Link>
           </div>

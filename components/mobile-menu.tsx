@@ -20,6 +20,7 @@ export const MobileMenu = ({ className }: MobileMenuProps) => {
   const menuItems = [
     { name: "Upload PCAP", href: "/dashboard" },
     { name: "Results", href: "/result" },
+    { name: "History", href: "/history" },
     { name: "Performance", href: "/performance" },
   ];
 

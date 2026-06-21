@@ -9,13 +9,50 @@ from fastapi import APIRouter, BackgroundTasks, Depends, File, HTTPException, Up
 from sqlalchemy.orm import Session
 
 from database import SessionLocal, get_db
-from models.db_models import AnalysisJob, AnalysisResult
+from models.db_models import AnalysisHistory, AnalysisJob, AnalysisResult, User
+from routers.auth import get_current_user_optional
 from schemas.schemas import ClassifyResponse, DeviceResult, FlowResult, PredictionItem, UploadResponse
 from services.classifier import classify_flows_detailed, classify_by_device, classify_flows_running
 from services.feature_extractor import extract_all_features
 from services.pcap_parser import parse_pcap
 
 router = APIRouter(prefix="/api", tags=["upload"])
+
+
+def _match_strength(confidence: float) -> str:
+    """Mirror the frontend bucketing: High >=75, Medium >=50, else Low."""
+    if confidence >= 75:
+        return "High"
+    if confidence >= 50:
+        return "Medium"
+    return "Low"
+
+
+def _save_history(
+    db: Session,
+    user_id: int,
+    *,
+    original_filename: str,
+    predicted_app: str,
+    confidence: float,
+    flow_count: int,
+    packet_count: int,
+    vpn_detected: bool,
+) -> None:
+    """Persist a summary record of a completed analysis for the given user."""
+    db.add(
+        AnalysisHistory(
+            user_id=user_id,
+            original_filename=original_filename,
+            predicted_app=predicted_app,
+            confidence=confidence,
+            match_strength=_match_strength(confidence),
+            flow_count=flow_count,
+            packet_count=packet_count,
+            vpn_detected=bool(vpn_detected),
+        )
+    )
+    db.commit()
 
 UPLOADS_DIR = os.path.join(os.path.dirname(__file__), "..", "uploads")
 os.makedirs(UPLOADS_DIR, exist_ok=True)
@@ -121,6 +158,19 @@ def _process(job_id: int, file_path: str) -> None:
         job.completed_at = datetime.now(timezone.utc)
         db.commit()
 
+        # Save a per-user history record (only when the upload was authenticated).
+        if job.user_id is not None:
+            _save_history(
+                db,
+                job.user_id,
+                original_filename=job.original_filename,
+                predicted_app=classification["predicted_app"],
+                confidence=classification["confidence"],
+                flow_count=classification["flow_count"],
+                packet_count=total_packets,
+                vpn_detected=classification["vpn_detected"],
+            )
+
     except Exception as exc:
         job = db.query(AnalysisJob).filter(AnalysisJob.id == job_id).first()
         if job:
@@ -139,6 +189,7 @@ async def upload_pcap(
     background_tasks: BackgroundTasks,
     file: UploadFile = File(...),
     db: Session = Depends(get_db),
+    current_user: User | None = Depends(get_current_user_optional),
 ):
     ext = os.path.splitext(file.filename or "")[1].lower()
     if ext not in ALLOWED_EXTENSIONS:
@@ -154,12 +205,13 @@ async def upload_pcap(
     with open(file_path, "wb") as f:
         f.write(content)
 
-    # Create job record
+    # Create job record (linked to the user when authenticated)
     job = AnalysisJob(
         filename=unique_name,
         original_filename=file.filename or unique_name,
         status="pending",
         progress=0,
+        user_id=current_user.id if current_user else None,
     )
     db.add(job)
     db.commit()
@@ -173,7 +225,11 @@ async def upload_pcap(
 # ── Synchronous classify endpoint ─────────────────────────────────────────────
 
 @router.post("/classify", response_model=ClassifyResponse)
-async def classify_pcap(file: UploadFile = File(...)):
+async def classify_pcap(
+    file: UploadFile = File(...),
+    db: Session = Depends(get_db),
+    current_user: User | None = Depends(get_current_user_optional),
+):
     """
     Upload a PCAP file and receive the full classification result immediately.
 
@@ -227,6 +283,19 @@ async def classify_pcap(file: UploadFile = File(...)):
             pass
 
     processing_time = round(time.time() - start, 2)
+
+    # Save a per-user history record (only when authenticated).
+    if current_user is not None:
+        _save_history(
+            db,
+            current_user.id,
+            original_filename=file.filename or unique_name,
+            predicted_app=result["predicted_app"],
+            confidence=result["confidence"],
+            flow_count=result["flow_count"],
+            packet_count=total_packets,
+            vpn_detected=result["vpn_detected"],
+        )
 
     return ClassifyResponse(
         predicted_app   = result["predicted_app"],

@@ -47,7 +47,7 @@ export default function LoginPage() {
         <Card className="border-primary/20 bg-background/95 backdrop-blur-sm shadow-[0_0_20px_rgba(255,199,0,0.1)]">
           <CardHeader className="text-center pb-6 pt-8">
             <CardTitle className="text-2xl md:text-3xl font-sentient mb-2">
-              Sign in to Traffic Intelligence Platform
+              Sign in to AI-Based Traffic Classifier
             </CardTitle>
             <CardDescription className="text-foreground/60">
               Enter your credentials to access the system

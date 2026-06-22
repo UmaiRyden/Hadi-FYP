@@ -27,8 +27,8 @@ export const Header = () => {
             className="w-10 h-10 md:w-12 md:h-12"
           />
           <span className="font-mono text-xl md:text-2xl font-semibold">
-            <span className="text-white">Encrypted Traffic</span>
-            <span className="text-primary ml-2">AI</span>
+            <span className="text-primary">AI-Based</span>
+            <span className="text-white ml-2">Traffic Classifier</span>
           </span>
         </Link>
         <nav className="flex max-lg:hidden absolute left-1/2 -translate-x-1/2 items-center justify-center gap-x-10">

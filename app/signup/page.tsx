@@ -58,7 +58,7 @@ export default function SignupPage() {
               Create Account
             </CardTitle>
             <CardDescription className="text-foreground/60">
-              Register to access the Traffic Intelligence Platform
+              Register to access AI-Based Traffic Classifier
             </CardDescription>
           </CardHeader>
 

@@ -11,7 +11,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "AI-Based Encrypted Mobile Traffic Classification System",
+  title: "AI-Based Traffic Classifier",
   description: "AI-Based Encrypted Mobile Traffic Classification System",
 };
 

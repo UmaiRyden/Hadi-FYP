@@ -1,13 +1,13 @@
 {
   "accuracy": 92.98,
-  "precision": 93.1,
+  "precision": 93.06,
   "recall": 92.98,
-  "f1_score": 93.01,
+  "f1_score": 92.99,
   "f1_per_class": {
-    "FACEBOOK": 96.15,
-    "INSTAGRAM": 80.47,
-    "WHATSAPP": 75.65,
-    "YOUTUBE": 93.22
+    "FACEBOOK": 96.03,
+    "INSTAGRAM": 80.81,
+    "WHATSAPP": 75.81,
+    "YOUTUBE": 93.29
   },
   "confusion_matrix": {
     "labels": [
@@ -18,28 +18,28 @@
     ],
     "matrix": [
       [
-        6383,
-        41,
-        49,
-        225
+        6368,
+        43,
+        51,
+        236
       ],
       [
-        25,
+        27,
         377,
-        25,
+        23,
         76
       ],
       [
-        20,
-        7,
-        724,
-        168
+        26,
+        5,
+        727,
+        180
       ],
       [
-        151,
-        9,
-        197,
-        5675
+        144,
+        5,
+        179,
+        5704
       ]
     ]
   },
@@ -64,6 +64,6 @@
     "Flow.Packets.s",
     "Down.Up.Ratio"
   ],
-  "training_samples": 56605,
-  "test_samples": 14152
+  "training_samples": 56683,
+  "test_samples": 14171
 }
